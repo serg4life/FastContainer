@@ -19,7 +19,7 @@ build_image() {
 run_image() {
     local container_name=$1
     echo "Running Docker container '${container_name}'"
-    docker run -v ./${container_name}/workspace:/workspace -it --rm ${container_name}
+    docker run -v .:/workspace -it --rm ${container_name}
 }
 
 docker_rm() {
