@@ -15,4 +15,8 @@ VOLUME [ "/workspace" ]
 
 WORKDIR /workspace
 
-CMD ["/bin/bash"]
+COPY ./container-init /container-init
+RUN chmod -R +x /container-init
+
+ENTRYPOINT [ "/container-init/entrypoint.sh" ]
+CMD [ "/bin/bash" ]
