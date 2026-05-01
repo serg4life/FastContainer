@@ -1,5 +1,7 @@
 #!/bin/bash
 
+CONFIG_VERSION="1.0-1"
+
 print_help() {
     echo "Usage:    $0 <options> <container_name>"
     echo "Example:  $0 -r my_container"
