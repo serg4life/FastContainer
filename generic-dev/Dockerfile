@@ -9,6 +9,8 @@ RUN apt-get update && apt-get install -y \
     vim \
     wget \
     unzip \
+    sudo \
+    gosu \
     ca-certificates
 
 VOLUME [ "/workspace" ]
