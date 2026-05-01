@@ -9,10 +9,16 @@ RUN apt-get update && apt-get install -y \
     vim \
     wget \
     unzip \
+    sudo \
+    gosu \
     ca-certificates
 
 VOLUME [ "/workspace" ]
 
 WORKDIR /workspace
 
-CMD ["/bin/bash"]
+COPY ./container-init /container-init
+RUN chmod -R +x /container-init
+
+ENTRYPOINT [ "/container-init/entrypoint.sh" ]
+CMD [ "/bin/bash" ]

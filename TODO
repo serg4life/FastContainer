@@ -1,0 +1,2 @@
+- Generar un container con QEMU para ARM64
+- Crear un container generico con docker-compose

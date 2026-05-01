@@ -1,25 +1,70 @@
 #!/bin/bash
 
-CONTAINER_NAME=$1
+CONFIG_VERSION="1.0-1"
 
 print_help() {
-    echo "Usage:    $0 <container_name>"
-    echo "Example:  $0 my_container"
+    echo "Usage:    $0 <options> <container_name>"
+    echo "Example:  $0 -r my_container"
+    echo "Options:"
+    echo "  -h, --help     Show this help message"
+    echo "  -r, --rebuild  Rebuild the Docker image before running"
+}
+
+build_image() {
+    local container_name=$1
+    echo "Building Docker image for container '${container_name}'"
+    docker build -t ${container_name} ./${container_name}
+}
+
+run_image() {
+    local container_name=$1
+    echo "Running Docker container '${container_name}'"
+    docker run -v ./${container_name}/workspace:/workspace -it --rm ${container_name}
+}
+
+docker_rm() {
+    local container_name=$1
+    docker image rm -f $container_name 2>/dev/null || true
 }
 
 run_docker() {
     local container_name=$1
-    docker build -t ${container_name} ./${container_name} && docker run -v ./${container_name}/workspace:/workspace -it --rm ${container_name}
+
+    if [ ! -f ./${container_name}/Dockerfile ]; then
+        echo "Error: Dockerfile not found for container '${container_name}'"
+        print_help
+        exit 1
+    fi
+
+    if docker image ls | grep -q $container_name; then
+        run_image $container_name
+    else
+        build_image $container_name && run_image $container_name
+    fi
 }
 
-if [ $# -ne 1 ]; then
+if [ $# -lt 1 ]; then
     print_help
     exit 1
 fi
 
-if [ -f ./${CONTAINER_NAME}/Dockerfile ]; then
-    run_docker ${CONTAINER_NAME}
-else
-    echo "Error: Dockerfile not found for container '${CONTAINER_NAME}'"
-    exit 1
-fi
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            print_help
+            exit 0
+            ;;
+
+        -r|--rebuild)
+            docker_rm $2
+            build_image $2
+            run_image $2
+            shift 2
+            ;;
+        *)
+            run_docker $1
+            shift 1
+            exit 0
+            ;;
+    esac
+done
