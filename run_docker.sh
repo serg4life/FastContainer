@@ -30,6 +30,7 @@ docker_rm() {
 
 run_docker() {
     local container_name=$1
+    local workspace_path=${2-"."}
 
     if [ ! -f ./${container_name}/Dockerfile ]; then
         echo "Error: Dockerfile not found for container [${container_name}]"
@@ -38,9 +39,9 @@ run_docker() {
     fi
 
     if docker image ls | grep -q $container_name; then
-        run_image $container_name
+        run_image $container_name $workspace_path
     else
-        build_image $container_name && run_image $container_name
+        build_image $container_name && run_image $container_name $workspace_path
     fi
 }
 
@@ -67,8 +68,12 @@ while [[ $# -gt 0 ]]; do
             fi
             ;;
         *)
-            run_docker $1
-            shift 1
+            run_docker $1 $2
+            if [ -n $2 ]; then
+                shift 2
+            else
+                shift 1
+            fi
             exit 0
             ;;
     esac

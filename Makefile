@@ -14,11 +14,12 @@ starter:
 	chmod +x starter
 
 .PHONY: install
-install:
+install: starter
 	install -m 755 run_docker.sh $(DESTDIR)/usr/bin/$(APP_NAME)
 	install -d ${DESTDIR}$(CONTAINER_PATH)
 	cp -r ${CONTAINER_NAME}/* $(DESTDIR)${CONTAINER_PATH}/
-	install -m 755 starter $(DESTDIR)/${CONTAINERS_DIR}/
+	install -m 755 starter $(DESTDIR)${CONTAINERS_DIR}/
+	rm -f starter
 
 .PHONY: clean
 clean:
