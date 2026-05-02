@@ -3,23 +3,24 @@
 CONFIG_VERSION="1.0-1"
 
 print_help() {
-    echo "Usage:    $0 <options> <container_name>"
-    echo "Example:  $0 -r my_container"
+    echo "Usage:    $0 <options> <container_name> <workspace_path>"
+    echo "Example:  $0 -r my_container /path/to/workspace"
     echo "Options:"
-    echo "  -h, --help     Show this help message"
-    echo "  -r, --rebuild  Rebuild the Docker image before running"
+    echo "          -h, --help     Show this help message"
+    echo "          -r, --rebuild  Rebuild the Docker image before running"
 }
 
 build_image() {
     local container_name=$1
-    echo "Building Docker image for container '${container_name}'"
+    echo "Building Docker image for container [${container_name}]"
     docker build -t ${container_name} ./${container_name}
 }
 
 run_image() {
     local container_name=$1
-    echo "Running Docker container '${container_name}'"
-    docker run -v .:/workspace -it --rm ${container_name}
+    local workspace_path=${2-"."}
+    echo "Running Docker container [${container_name}]"
+    docker run -v ${workspace_path}:/workspace -it --rm ${container_name}
 }
 
 docker_rm() {
@@ -31,7 +32,7 @@ run_docker() {
     local container_name=$1
 
     if [ ! -f ./${container_name}/Dockerfile ]; then
-        echo "Error: Dockerfile not found for container '${container_name}'"
+        echo "Error: Dockerfile not found for container [${container_name}]"
         print_help
         exit 1
     fi
@@ -58,8 +59,12 @@ while [[ $# -gt 0 ]]; do
         -r|--rebuild)
             docker_rm $2
             build_image $2
-            run_image $2
-            shift 2
+            run_image $2 $3
+            if [ -n $3 ]; then
+                shift 3
+            else
+                shift 2
+            fi
             ;;
         *)
             run_docker $1
