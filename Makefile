@@ -2,25 +2,25 @@ DESTDIR =
 
 APP_NAME = run_container
 
-CONTAINER_NAME = generic-dev
-CONTAINERS_DIR = /etc/containers
-CONTAINER_PATH=$(CONTAINERS_DIR)/$(CONTAINER_NAME)
-
-default: install all
+CONTAINERS := generic-dev qemu-arm64-dev
+CONTAINERS_DIR := /etc/containers
 
 starter:
-	printf '#!/bin/bash\n$(APP_NAME) $$1\n' > starter
-	chmod +x starter
+	@printf '#!/bin/bash\n$(APP_NAME) $$1\n' > starter
+	@chmod +x starter
 
-.PHONY: install
-install: starter
-	install -m 755 run_docker.sh $(DESTDIR)/usr/bin/$(APP_NAME)
-	install -d ${DESTDIR}$(CONTAINER_PATH)
-	cp -r ${CONTAINER_NAME}/* $(DESTDIR)${CONTAINER_PATH}/
-	install -m 755 starter $(DESTDIR)${CONTAINERS_DIR}/
-	rm -f starter
+.PHONY: install starter clean
 
-.PHONY: clean
+# Target principal: instala todo
+install: starter $(CONTAINERS:%=install-%)
+
+# Regla genérica por container (ESCALABLE)
+.PHONY: install-%
+install-%:
+	@echo "Instalando $* en $(DESTDIR)${CONTAINERS_DIR}/$*"
+	@mkdir -p $(DESTDIR)${CONTAINERS_DIR}/$*
+	@cp -r containers/$*/* $(DESTDIR)${CONTAINERS_DIR}/$*/
+
 clean:
 	rm -f $(DESTDIR)/usr/bin/$(APP_NAME)
 	rm -rf $(DESTDIR)${CONTAINERS_DIR}

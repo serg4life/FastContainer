@@ -1,6 +1,7 @@
 FROM ubuntu:24.04
 
-LABEL version="1.0-1"
+LABEL version="1.0-2"
+LABEL name="generic-dev"
 
 ENV DEBIAN_FRONTEND=noninteractive
 

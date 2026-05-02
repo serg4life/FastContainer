@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_VERSION="b1.1-1"
+CONFIG_VERSION="b1.2-1"
 USER=$USER
 
 print_help() {
@@ -17,7 +17,8 @@ print_container_version() {
     local container_id=${container_name}_${USER}
     if docker image ls | grep -q $container_id; then
         local version=$(docker image inspect $container_id:${CONFIG_VERSION} --format '{{ index .Config.Labels "version" }}')
-        echo "Container [${container_name}] version: ${version}"
+        local name=$(docker image inspect $container_id:${CONFIG_VERSION} --format '{{ index .Config.Labels "name" }}')
+        echo "Container [${container_name}] version: ${name}_${version}"
         echo "Builder version: ${CONFIG_VERSION}"
     else
         echo "Container [${container_name}] not found. Please build the image first."
