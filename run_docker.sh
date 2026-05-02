@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CONFIG_VERSION="b1.0-1"
+CONFIG_VERSION="b1.1-1"
 USER=$USER
 
 print_help() {
