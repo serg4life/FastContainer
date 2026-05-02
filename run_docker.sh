@@ -13,6 +13,21 @@ print_help() {
     echo "          -v, --version  Print the version of the Docker image and container builder"
 }
 
+check_docker() {
+    # Check if docker command exists
+    if ! command -v docker >/dev/null 2>&1; then
+        echo "❌ Docker is not installed."
+        return 1
+    fi
+
+    # Check if docker daemon is running
+    if ! docker info >/dev/null 2>&1; then
+        echo "❌ Docker is installed but the daemon is not running or you don't have permissions."
+        return 2
+    fi
+    return 0
+}
+
 is_aarch64() {
     local $container_name=$1
     if [ -f ${CONTAINER_DIR}/${container_name}/aarch64 ]; then
@@ -123,6 +138,8 @@ if [ $# -lt 1 ]; then
     print_help
     exit 1
 fi
+
+check_docker || exit 1
 
 while [[ $# -gt 0 ]]; do
     case $1 in
