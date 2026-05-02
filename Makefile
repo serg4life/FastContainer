@@ -1,5 +1,4 @@
 DESTDIR =
-VERSION = "1.0-1"
 
 APP_NAME = run_container
 
