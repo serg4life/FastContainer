@@ -5,3 +5,8 @@
 
 # Ruta de instalacion
 La ruta de instalacion debe ser comun con la que usara el project configurator, para que este detecte y pueda instalar en los diferentes repos los containers desarrollados en este repo.
+
+# Para habilitar binfmt en el HOST
+docker run --privileged --rm \
+  -v /proc/sys/fs/binfmt_misc:/binfmt_misc \
+  multiarch/qemu-user-static --reset -p yes

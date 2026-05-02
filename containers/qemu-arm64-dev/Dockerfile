@@ -1,20 +1,19 @@
 FROM ubuntu:24.04
 
 LABEL version="1.0-1"
-LABEL name="qemu-arm64-dev"
+LABEL id="qemu-arm64-dev"
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Toolchain completo dentro del container
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl \
+    gcc \
+    g++ \
+    make \
+    cmake \
     git \
-    vim \
-    wget \
-    unzip \
-    sudo \
-    gosu \
-    ca-certificates
+    curl
 
 VOLUME [ "/workspace" ]
 
