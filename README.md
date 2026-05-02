@@ -17,7 +17,7 @@ Both container types support mounting a host directory as a volume (defaults to 
 ## Usage
 
 > [!IMPORTANT]
-> This repository is designed to work alongside the [**project-configurator/R2eady**](https://> github.com/serg4life/R2eady) repository, which helps set up projects for various use cases.  
+> This repository is designed to work alongside the [project-configurator/R2eady](https://github.com/serg4life/R2eady) repository, which helps set up projects for various use cases.  
 > A minimal standalone version of the required script is also included here.
 
 ---
