@@ -1,7 +1,8 @@
 #!/bin/bash
 
-CONFIG_VERSION="b1.1-1"
+CONFIG_VERSION="b1.2-1"
 USER=$USER
+CONTAINER_DIR="."
 
 print_help() {
     echo "Usage:    $0 <options> <container_name> <workspace_path>"
@@ -12,27 +13,67 @@ print_help() {
     echo "          -v, --version  Print the version of the Docker image and container builder"
 }
 
-print_container_version() {
+is_aarch64() {
+    local $container_name=$1
+    if [ -f ${CONTAINER_DIR}/${container_name}/aarch64 ]; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+get_container_id() {
+    local container_name=$1
+    local container_id=${container_name}_${USER}
+    if docker image ls | grep -q $container_id; then
+        local id=$(docker image inspect $container_id:${CONFIG_VERSION} --format '{{ index .Config.Labels "id" }}')
+    else
+        return 1
+    fi
+    echo $id
+}
+
+get_container_version() {
     local container_name=$1
     local container_id=${container_name}_${USER}
     if docker image ls | grep -q $container_id; then
         local version=$(docker image inspect $container_id:${CONFIG_VERSION} --format '{{ index .Config.Labels "version" }}')
-        echo "Container [${container_name}] version: ${version}"
-        echo "Builder version: ${CONFIG_VERSION}"
     else
-        echo "Container [${container_name}] not found. Please build the image first."
+        return 1
     fi
+    echo $version
+}
+
+print_container_version() {
+    local container_name=$1
+    local version=$(get_container_version ${container_name})
+    local id=$(get_container_id ${container_name})
+
+    if [ -z "$version" ] || [ -z "$id" ]; then
+        echo "Error: Failed to retrieve version information for container [${container_name}]"
+        return 1
+    fi
+    echo "Container [${container_name}] version: ${id}_${version}"
+    echo "Builder version: ${CONFIG_VERSION}"
 }
 
 build_image() {
     local container_name=$1
     local container_id=${container_name}_${USER}
-    local container_path=./${container_name}
+    local container_path=${CONTAINER_DIR}/${container_name}
     echo "Building Docker image for container [${container_name}]"
-    docker build -t ${container_id}:${CONFIG_VERSION} ${container_path} || {
-        echo "Error: Failed to build Docker image for container [${container_name}]"
-        exit 1
-    }
+    if is_aarch64 ${container_name}; then
+        echo "Building aarch64 image for container [${container_name}]" 
+        docker buildx build --platform=linux/arm64 -t ${container_id}:${CONFIG_VERSION} --load ${container_path} || {
+            echo "Error: Failed to build Docker image for container [${container_name}]"
+            exit 1
+        }
+    else
+        docker build -t ${container_id}:${CONFIG_VERSION} ${container_path} || {
+            echo "Error: Failed to build Docker image for container [${container_name}]"
+            exit 1
+        }
+    fi
 }
 
 run_image() {
@@ -40,15 +81,24 @@ run_image() {
     local container_id=${container_name}_${USER}
     local workspace_path=${2-"."}
     echo "Running Docker container [${container_name}]"
-    docker run -v ${workspace_path}:/workspace -it --rm ${container_id}:${CONFIG_VERSION} || {
-        echo "Error: Failed to run Docker container [${container_name}]"
-        exit 1
-    }
+    if is_aarch64 ${container_name}; then
+        echo "Running aarch64 image for container [${container_name}]" 
+        docker run -v ${workspace_path}:/workspace --platform=linux/arm64 -it --rm ${container_id}:${CONFIG_VERSION} || {
+            echo "Error: Failed to run Docker container [${container_name}]"
+            exit 1
+        }
+    else
+        docker run -v ${workspace_path}:/workspace -it --rm ${container_id}:${CONFIG_VERSION} || {
+            echo "Error: Failed to run Docker container [${container_name}]"
+            exit 1
+        }
+    fi
 }
 
 docker_rm() {
+
     local container_id=$1_${USER}
-    docker image rm -f $container_id 2>/dev/null || true
+    docker image rm -f $container_id:${CONFIG_VERSION} 2>/dev/null || true
 }
 
 run_docker() {
