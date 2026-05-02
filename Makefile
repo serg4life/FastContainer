@@ -7,19 +7,23 @@ CONTAINERS_DIR := /etc/containers
 
 starter:
 	@printf '#!/bin/bash\n$(APP_NAME) $$1\n' > starter
-	@chmod +x starter
 
 .PHONY: install starter clean
 
 # Target principal: instala todo
-install: starter $(CONTAINERS:%=install-%)
+install: $(APP_NAME) $(CONTAINERS:%=install-%)
+
+$(APP_NAME): starter
+	install -m 755 run_docker.sh $(DESTDIR)/usr/bin/$(APP_NAME)
+	install -m 755 starter $(DESTDIR)${CONTAINERS_DIR}
+	install -m 755 scripts/project-configurator-reduced.sh $(DESTDIR)/usr/bin/project-configurator
+	rm -f starter
 
 # Regla genérica por container (ESCALABLE)
 .PHONY: install-%
 install-%:
-	@echo "Instalando $* en $(DESTDIR)${CONTAINERS_DIR}/$*"
-	@mkdir -p $(DESTDIR)${CONTAINERS_DIR}/$*
-	@cp -r containers/$*/* $(DESTDIR)${CONTAINERS_DIR}/$*/
+	mkdir -p $(DESTDIR)${CONTAINERS_DIR}/$*
+	cp -r containers/$*/* $(DESTDIR)${CONTAINERS_DIR}/$*/
 
 clean:
 	rm -f $(DESTDIR)/usr/bin/$(APP_NAME)
